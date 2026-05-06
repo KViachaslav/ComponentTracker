@@ -1,0 +1,675 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RadioStack RPi - Учёт радиокомпонентов</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', 'Inter', system-ui, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(145deg, #e9f0f5 0%, #d9e2ec 100%);
+            min-height: 100vh;
+            padding: 2rem 1.5rem;
+        }
+
+        .app-container {
+            max-width: 1600px;
+            margin: 0 auto;
+            background: rgba(255,255,255,0.35);
+            backdrop-filter: blur(1px);
+            border-radius: 2.5rem;
+            box-shadow: 0 20px 40px -12px rgba(0,0,0,0.2);
+            padding: 1.8rem 2rem;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            flex-wrap: wrap;
+            margin-bottom: 2rem;
+            border-bottom: 2px solid rgba(46, 87, 119, 0.25);
+            padding-bottom: 1rem;
+        }
+
+        .title-section h1 {
+            font-size: 1.9rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #1e2f3a, #1f5e7e);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        .title-section p {
+            color: #2c4b66;
+            font-weight: 500;
+            font-size: 0.85rem;
+            margin-top: 0.25rem;
+        }
+
+        .stats-badge {
+            background: #1e2f3a;
+            color: white;
+            padding: 0.5rem 1.2rem;
+            border-radius: 40px;
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+
+        .form-card {
+            background: white;
+            border-radius: 1.8rem;
+            padding: 1.5rem 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 12px 24px -12px rgba(0,0,0,0.15);
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+            gap: 1rem 1.2rem;
+        }
+
+        .input-field {
+            display: flex;
+            flex-direction: column;
+            gap: 0.4rem;
+        }
+
+        .input-field label {
+            font-weight: 600;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #1f5e7e;
+        }
+
+        .input-field input, .input-field select {
+            padding: 0.7rem 1rem;
+            border-radius: 1rem;
+            border: 1.5px solid #e2edf2;
+            font-size: 0.9rem;
+            outline: none;
+        }
+
+        .input-field input:focus, .input-field select:focus {
+            border-color: #2c8eb3;
+            box-shadow: 0 0 0 3px rgba(44,142,179,0.2);
+        }
+
+        .form-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+
+        .btn {
+            border: none;
+            padding: 0.7rem 1.5rem;
+            border-radius: 2rem;
+            font-weight: 600;
+            font-size: 0.85rem;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.6rem;
+        }
+
+        .btn-primary {
+            background: #1f5e7e;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #0f455f;
+            transform: translateY(-2px);
+        }
+
+        .btn-secondary {
+            background: #eef3f7;
+            color: #1f5e7e;
+        }
+
+        .search-section {
+            margin: 1rem 0 1.5rem 0;
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .search-box {
+            flex: 2;
+            background: white;
+            border-radius: 3rem;
+            display: flex;
+            align-items: center;
+            padding: 0.2rem 0.2rem 0.2rem 1.2rem;
+            box-shadow: 0 8px 14px rgba(0,0,0,0.05);
+        }
+
+        .search-box input {
+            border: none;
+            padding: 0.8rem;
+            width: 100%;
+            background: transparent;
+            outline: none;
+        }
+
+        .table-wrapper {
+            overflow-x: auto;
+            border-radius: 1.5rem;
+            background: white;
+            box-shadow: 0 12px 28px -10px rgba(0,0,0,0.08);
+        }
+
+        .components-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.85rem;
+            min-width: 1100px;
+        }
+
+        .components-table th {
+            background: #f0f6fa;
+            padding: 1rem 0.8rem;
+            text-align: left;
+            font-weight: 700;
+            color: #1e4b64;
+        }
+
+        .components-table td {
+            padding: 0.9rem 0.8rem;
+            border-bottom: 1px solid #e9f0f4;
+        }
+
+        .badge-qty {
+            background: #1f5e7e20;
+            font-weight: 700;
+            border-radius: 40px;
+            padding: 0.2rem 0.7rem;
+            display: inline-block;
+        }
+
+        .icon-btn {
+            background: none;
+            border: none;
+            font-size: 1.2rem;
+            cursor: pointer;
+            padding: 0.3rem;
+            margin: 0 0.2rem;
+        }
+
+        .icon-btn.edit:hover { color: #2c8eb3; }
+        .icon-btn.delete:hover { color: #dc6b6b; }
+
+        .loading {
+            text-align: center;
+            padding: 2rem;
+            color: #86a1b2;
+        }
+
+        .status-bar {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #1f5e7e;
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            z-index: 1000;
+        }
+    </style>
+</head>
+<body>
+<div class="app-container">
+    <div class="header">
+        <div class="title-section">
+            <h1><i class="fas fa-microchip"></i> RadioStack RPi</h1>
+            <p>удалённая БД на Raspberry Pi • Flask + SQLite</p>
+        </div>
+        <div class="stats-badge" id="statsCounter">
+            <i class="fas fa-database"></i> <span id="componentCount">0</span> компонентов
+        </div>
+    </div>
+
+    <!-- Форма -->
+    <div class="form-card">
+        <div class="form-grid">
+            <div class="input-field"><label>Наименование *</label><input type="text" id="nameInput" placeholder="Резистор 10кОм"></div>
+            <div class="input-field"><label>Инв. номер</label><input type="text" id="invNumberInput" placeholder="INV-001"></div>
+            <div class="input-field"><label>Шкаф</label><input type="text" id="cabinetInput" placeholder="A"></div>
+            <div class="input-field"><label>Шуфлядка</label><input type="text" id="drawerInput" placeholder="1"></div>
+            <div class="input-field"><label>Отсек</label><input type="text" id="sectionInput" placeholder="левый"></div>
+            <div class="input-field"><label>Документация</label><input type="text" id="docInput" placeholder="datasheet"></div>
+            <div class="input-field"><label>Примечание</label><input type="text" id="noteInput" placeholder="..."></div>
+            <div class="input-field"><label>Количество</label><input type="number" id="quantityInput" value="1" min="0"></div>
+            <div class="input-field">
+    <label>Корпус</label>
+    <div style="position: relative;">
+        <input type="text" 
+               id="packageInput" 
+               list="packageOptions"
+               placeholder="Введите или выберите корпус (0603, SOIC-8, LQFP-64...)"
+               autocomplete="off"
+               style="width: 100%; padding: 0.7rem 1rem; border-radius: 1rem; border: 1.5px solid #e2edf2; font-size: 0.9rem; outline: none;">
+        <datalist id="packageOptions">
+            <!-- SMD резисторы и конденсаторы -->
+            <option>0402</option>
+            <option>0603</option>
+            <option>0805</option>
+            <option>1206</option>
+            <option>1210</option>
+            <option>2010</option>
+            <option>2512</option>
+            
+            <!-- SOIC семейство -->
+            <option>SOIC</option>
+            <option>SOIC-8</option>
+            <option>SOIC-14</option>
+            <option>SOIC-16</option>
+            <option>SOIC-18</option>
+            <option>SOIC-20</option>
+            <option>SOIC-24</option>
+            <option>SOIC-28</option>
+            <option>SOIC-32</option>
+            
+            <!-- SSOP / TSSOP -->
+            <option>SSOP</option>
+            <option>SSOP-8</option>
+            <option>SSOP-16</option>
+            <option>SSOP-20</option>
+            <option>SSOP-24</option>
+            <option>SSOP-28</option>
+            <option>TSSOP</option>
+            <option>TSSOP-8</option>
+            <option>TSSOP-14</option>
+            <option>TSSOP-16</option>
+            <option>TSSOP-20</option>
+            <option>TSSOP-24</option>
+            <option>TSSOP-28</option>
+            <option>TSSOP-38</option>
+            
+            <!-- QFP/LQFP/TQFP -->
+            <option>QFP</option>
+            <option>LQFP</option>
+            <option>LQFP-32</option>
+            <option>LQFP-44</option>
+            <option>LQFP-48</option>
+            <option>LQFP-64</option>
+            <option>LQFP-80</option>
+            <option>LQFP-100</option>
+            <option>LQFP-128</option>
+            <option>LQFP-144</option>
+            <option>LQFP-176</option>
+            <option>LQFP-208</option>
+            <option>TQFP</option>
+            <option>TQFP-32</option>
+            <option>TQFP-44</option>
+            <option>TQFP-48</option>
+            <option>TQFP-64</option>
+            <option>TQFP-100</option>
+            <option>TQFP-144</option>
+            
+            <!-- QFN -->
+            <option>QFN</option>
+            <option>QFN-16</option>
+            <option>QFN-20</option>
+            <option>QFN-24</option>
+            <option>QFN-28</option>
+            <option>QFN-32</option>
+            <option>QFN-48</option>
+            <option>QFN-64</option>
+            <option>VQFN</option>
+            
+            <!-- SOT семейство -->
+            <option>SOT-23</option>
+            <option>SOT-23-3</option>
+            <option>SOT-23-5</option>
+            <option>SOT-23-6</option>
+            <option>SOT-89</option>
+            <option>SOT-223</option>
+            <option>SOT-227</option>
+            <option>SOT-323</option>
+            <option>SOT-353</option>
+            <option>SOT-363</option>
+            <option>SOT-563</option>
+            <option>SOT-666</option>
+            
+            <!-- TO семейство -->
+            <option>TO-92</option>
+            <option>TO-126</option>
+            <option>TO-220</option>
+            <option>TO-220F</option>
+            <option>TO-247</option>
+            <option>TO-247PLUS</option>
+            <option>TO-252 (DPAK)</option>
+            <option>TO-263 (D2PAK)</option>
+            <option>TO-264</option>
+            <option>TO-3</option>
+            <option>TO-5</option>
+            <option>TO-18</option>
+            <option>TO-39</option>
+            <option>TO-46</option>
+            
+            <!-- DIP -->
+            <option>DIP</option>
+            <option>DIP-8</option>
+            <option>DIP-14</option>
+            <option>DIP-16</option>
+            <option>DIP-18</option>
+            <option>DIP-20</option>
+            <option>DIP-24</option>
+            <option>DIP-28</option>
+            <option>DIP-32</option>
+            <option>DIP-40</option>
+            <option>PDIP</option>
+            
+            <!-- Другие популярные -->
+            <option>PLCC</option>
+            <option>PLCC-20</option>
+            <option>PLCC-28</option>
+            <option>PLCC-32</option>
+            <option>PLCC-44</option>
+            <option>PLCC-68</option>
+            <option>BGA</option>
+            <option>BGA-64</option>
+            <option>BGA-100</option>
+            <option>BGA-144</option>
+            <option>BGA-256</option>
+            <option>CSP</option>
+            <option>DFN</option>
+            <option>DFN-8</option>
+            <option>DFN-10</option>
+            <option>DFN-12</option>
+            <option>SON</option>
+            <option>SON-8</option>
+            
+            <!-- Корпуса для кварцев/датчиков -->
+            <option>HC-49</option>
+            <option>HC-49S</option>
+            <option>HC-49U</option>
+            <option>HC-51</option>
+            <option>3225</option>
+            <option>5032</option>
+            <option>6035</option>
+            <option>8045</option>
+            <option>MELF</option>
+            <option>SOD-80</option>
+            <option>SOD-123</option>
+            <option>SOD-323</option>
+            <option>SMA</option>
+            <option>SMB</option>
+            <option>SMC</option>
+            
+            <option>Другое</option>
+        </datalist>
+    </div>
+    <small style="color: #6c8fa3; font-size: 0.7rem;">💡 Начните вводить название, и появятся подсказки</small>
+</div>
+        </div>
+        <div class="form-actions">
+            <button class="btn btn-secondary" id="clearFormBtn"><i class="fas fa-eraser"></i> Очистить</button>
+            <button class="btn btn-primary" id="saveComponentBtn"><i class="fas fa-save"></i> Сохранить</button>
+        </div>
+    </div>
+
+    <!-- Поиск -->
+    <div class="search-section">
+        <div class="search-box">
+            <i class="fas fa-search"></i>
+            <input type="text" id="searchInput" placeholder="Поиск по всем полям...">
+            <button class="clear-search" id="clearSearchBtn" style="background:none;border:none;cursor:pointer"><i class="fas fa-times-circle"></i></button>
+        </div>
+        <button class="btn btn-secondary" id="refreshListBtn"><i class="fas fa-sync-alt"></i> Обновить</button>
+    </div>
+
+    <!-- Таблица -->
+    <div class="table-wrapper">
+        <table class="components-table">
+            <thead><tr><th>Наименование</th><th>Инв.номер</th><th>Шкаф</th><th>Шуфлядка</th><th>Отсек</th><th>Документация</th><th>Примечание</th><th>Кол-во</th><th>Корпус</th><th>Действия</th></tr></thead>
+            <tbody id="tableBody"><tr><td colspan="10" class="loading">Загрузка данных с Raspberry Pi...</td></tr></tbody>
+        </table>
+    </div>
+</div>
+<div class="status-bar" id="statusBar">🟢 онлайн</div>
+
+<script>
+    // Конфигурация API (замените IP на адрес вашей Raspberry Pi)
+    const API_BASE = window.location.origin;  // или 'http://192.168.1.100:5000'
+    
+    let components = [];
+    let editModeId = null;
+
+    // DOM элементы
+    const nameInput = document.getElementById('nameInput');
+    const invNumberInput = document.getElementById('invNumberInput');
+    const cabinetInput = document.getElementById('cabinetInput');
+    const drawerInput = document.getElementById('drawerInput');
+    const sectionInput = document.getElementById('sectionInput');
+    const docInput = document.getElementById('docInput');
+    const noteInput = document.getElementById('noteInput');
+    const quantityInput = document.getElementById('quantityInput');
+    const packageInput = document.getElementById('packageInput');
+    const searchInput = document.getElementById('searchInput');
+    const tableBody = document.getElementById('tableBody');
+    const componentCountSpan = document.getElementById('componentCount');
+    const statusBar = document.getElementById('statusBar');
+
+    function showStatus(message, isError = false) {
+        statusBar.innerHTML = message;
+        statusBar.style.background = isError ? '#dc6b6b' : '#1f5e7e';
+        setTimeout(() => {
+            statusBar.style.background = '#1f5e7e';
+            statusBar.innerHTML = '🟢 онлайн';
+        }, 3000);
+    }
+
+    async function apiRequest(url, method = 'GET', data = null) {
+        const options = {
+            method,
+            headers: { 'Content-Type': 'application/json' }
+        };
+        if (data) options.body = JSON.stringify(data);
+        
+        try {
+            const response = await fetch(`${API_BASE}${url}`, options);
+            if (!response.ok) throw new Error(`HTTP ${response.status}`);
+            const result = await response.json();
+            return result;
+        } catch (error) {
+            console.error('API Error:', error);
+            showStatus(`❌ Ошибка: ${error.message}`, true);
+            throw error;
+        }
+    }
+
+    async function loadComponents() {
+        try {
+            const data = await apiRequest('/api/components');
+            components = data;
+            renderTable();
+            updateStats();
+            showStatus('✅ Данные загружены');
+        } catch (error) {
+            tableBody.innerHTML = '<tr><td colspan="10" class="loading">❌ Не удалось загрузить данные. Проверьте соединение с сервером.</td></tr>';
+        }
+    }
+
+    async function updateStats() {
+        try {
+            const stats = await apiRequest('/api/stats');
+            componentCountSpan.innerText = stats.total;
+        } catch (error) {
+            componentCountSpan.innerText = '?';
+        }
+    }
+
+    async function saveComponent() {
+        const name = nameInput.value.trim();
+        if (!name) {
+            alert('Введите наименование компонента');
+            return;
+        }
+
+        const component = {
+            name: name,
+            inv_number: invNumberInput.value.trim(),
+            cabinet: cabinetInput.value.trim(),
+            drawer: drawerInput.value.trim(),
+            section: sectionInput.value.trim(),
+            documentation: docInput.value.trim(),
+            note: noteInput.value.trim(),
+            quantity: parseInt(quantityInput.value) || 0,
+            package: packageInput.value
+        };
+
+        try {
+            if (editModeId !== null) {
+                await apiRequest(`/api/components/${editModeId}`, 'PUT', component);
+                showStatus('✏️ Компонент обновлён');
+            } else {
+                await apiRequest('/api/components', 'POST', component);
+                showStatus('➕ Компонент добавлен');
+            }
+            resetForm();
+            await loadComponents();
+        } catch (error) {
+            showStatus('Ошибка сохранения', true);
+        }
+    }
+
+    async function deleteComponent(id) {
+        if (!confirm('Удалить компонент?')) return;
+        try {
+            await apiRequest(`/api/components/${id}`, 'DELETE');
+            showStatus('🗑️ Компонент удалён');
+            await loadComponents();
+        } catch (error) {
+            showStatus('Ошибка удаления', true);
+        }
+    }
+
+    function editComponent(comp) {
+        editModeId = comp.id;
+        nameInput.value = comp.name;
+        invNumberInput.value = comp.inv_number || '';
+        cabinetInput.value = comp.cabinet || '';
+        drawerInput.value = comp.drawer || '';
+        sectionInput.value = comp.section || '';
+        docInput.value = comp.documentation || '';
+        noteInput.value = comp.note || '';
+        quantityInput.value = comp.quantity;
+        packageInput.value = comp.package;
+        document.querySelector('.form-card').scrollIntoView({ behavior: 'smooth' });
+        document.getElementById('saveComponentBtn').innerHTML = '<i class="fas fa-pen"></i> Обновить';
+    }
+
+    function resetForm() {
+        editModeId = null;
+        nameInput.value = '';
+        invNumberInput.value = '';
+        cabinetInput.value = '';
+        drawerInput.value = '';
+        sectionInput.value = '';
+        docInput.value = '';
+        noteInput.value = '';
+        quantityInput.value = 1;
+        packageInput.value = 'SMD (0805)';
+        document.getElementById('saveComponentBtn').innerHTML = '<i class="fas fa-save"></i> Сохранить';
+    }
+
+    async function searchComponents() {
+        const query = searchInput.value.trim();
+        if (!query) {
+            await loadComponents();
+            return;
+        }
+        try {
+            const results = await apiRequest(`/api/search?q=${encodeURIComponent(query)}`);
+            components = results;
+            renderTable();
+        } catch (error) {
+            showStatus('Ошибка поиска', true);
+        }
+    }
+
+    function renderTable() {
+        if (!components.length) {
+            tableBody.innerHTML = '<tr><td colspan="10" class="loading">📭 Список пуст. Добавьте первый компонент.</td></tr>';
+            return;
+        }
+        
+        let html = '';
+        components.forEach(comp => {
+            html += `<tr>
+                        <td><strong>${escapeHtml(comp.name)}</strong></td>
+                        <td>${escapeHtml(comp.inv_number || '—')}</td>
+                        <td>${escapeHtml(comp.cabinet || '—')}</td>
+                        <td>${escapeHtml(comp.drawer || '—')}</td>
+                        <td>${escapeHtml(comp.section || '—')}</td>
+                        <td>${escapeHtml(comp.documentation || '—')}</td>
+                        <td>${escapeHtml(comp.note || '—')}</td>
+                        <td><span class="badge-qty">${comp.quantity}</span></td>
+                        <td>${escapeHtml(comp.package || '—')}</td>
+                        <td>
+                            <button class="icon-btn edit" data-id="${comp.id}"><i class="fas fa-edit"></i></button>
+                            <button class="icon-btn delete" data-id="${comp.id}"><i class="fas fa-trash-alt"></i></button>
+                        </td>
+                    </tr>`;
+        });
+        tableBody.innerHTML = html;
+        
+        document.querySelectorAll('.edit').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const id = parseInt(btn.dataset.id);
+                const comp = components.find(c => c.id === id);
+                if (comp) editComponent(comp);
+            });
+        });
+        
+        document.querySelectorAll('.delete').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const id = parseInt(btn.dataset.id);
+                deleteComponent(id);
+            });
+        });
+    }
+
+    function escapeHtml(str) {
+        if (!str) return '';
+        return str.replace(/[&<>]/g, function(m) {
+            if (m === '&') return '&amp;';
+            if (m === '<') return '&lt;';
+            if (m === '>') return '&gt;';
+            return m;
+        });
+    }
+
+    // Event listeners
+    document.getElementById('saveComponentBtn').addEventListener('click', saveComponent);
+    document.getElementById('clearFormBtn').addEventListener('click', resetForm);
+    document.getElementById('refreshListBtn').addEventListener('click', loadComponents);
+    document.getElementById('clearSearchBtn').addEventListener('click', () => {
+        searchInput.value = '';
+        loadComponents();
+    });
+    searchInput.addEventListener('input', () => {
+        clearTimeout(window.searchTimeout);
+        window.searchTimeout = setTimeout(searchComponents, 300);
+    });
+
+    // Загрузка при старте
+    loadComponents();
+</script>
+</body>
+</html>

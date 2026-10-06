@@ -1,0 +1,17 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+
+# Данные хранятся только на устройстве, не в git
+data/
+*.db
+*.db-wal
+*.db-shm
+radiocomponents.db
+
+# Прочее
+*.log
+.env

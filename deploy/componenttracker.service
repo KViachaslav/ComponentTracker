@@ -1,0 +1,16 @@
+[Unit]
+Description=ComponentTracker (Flask via gunicorn)
+After=network.target
+
+[Service]
+Type=simple
+User=pi
+Group=pi
+WorkingDirectory=/home/pi/component-tracker
+Environment=DB_PATH=/home/pi/component-tracker/data/radiocomponents.db
+ExecStart=/home/pi/component-tracker/.venv/bin/gunicorn --workers 2 --bind 0.0.0.0:5000 app:app
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
